@@ -4,6 +4,9 @@
  * Qt for MCUs singleton that bridges QML UI to the fizmo interpreter.
  * Uses Qul::EventQueue for thread-safe updates from the fizmo FreeRTOS task.
  *
+ * Text buffer management and polling logic are delegated to the shared
+ * ui/common modules (FizmoTextBuffer, FizmoPoller).
+ *
  * Note: Qt for MCUs doesn't support Qul::String in Property<T> directly.
  * We use a version counter pattern - QML rebinds when version changes
  * and calls methods to get string content.
@@ -20,6 +23,8 @@
 #include <qul/private/unicodestring.h>
 
 #include "DisplayConfig.h"
+#include "FizmoTextBuffer.h"
+#include "FizmoPoller.h"
 
 /*
  * Event types for communication from fizmo task to Qt task
@@ -74,7 +79,6 @@ public:
      */
 
     // Version counter - incremented when output text changes
-    // QML can use this to trigger rebinding
     Qul::Property<int> outputVersion;
 
     // Version counter for status line changes
@@ -103,24 +107,15 @@ public:
      * Methods callable from QML - string getters
      */
 
-    // Get the accumulated output text (UTF-8)
     const char* getOutputText() const;
-
-    // Get status line room name
     const char* getStatusRoom() const;
-
-    // Get status line score/time
     const char* getStatusScore() const;
 
     /*
      * Methods callable from QML - input submission
      */
 
-    // Submit a line of input (when waitingForInput is true)
-    // Note: QML passes Qul::Private::String
     void submitLine(const Qul::Private::String &text);
-
-    // Submit a single character (when waitingForChar is true)
     void submitChar(int ch);
 
     // Helper for backspace - Qt for MCUs has limited string methods
@@ -148,26 +143,11 @@ public:
 private:
     friend class FizmoEventQueue;
 
-    // Internal output buffer (we accumulate text here)
-    // IMPORTANT: glyphsLayoutCacheSize in .qmlproject must be proportional to this buffer
-    // Rule of thumb: layout cache should be ~2x the max visible text size
-    // RT1050: 480x272 display only shows ~10-15 lines, keep buffer small
-#if defined(DISPLAY_RT1050)
-    static const int MAX_OUTPUT_LENGTH = 4096;   // 4KB for RT1050
-#else
-    static const int MAX_OUTPUT_LENGTH = 16384;  // 16KB for desktop/RT1170
-#endif
-    char m_outputBuffer[MAX_OUTPUT_LENGTH];
-    int m_outputLength;
-    int m_currentOutputStart;  // Marks where the current story output began
+    // Shared text buffer (output, status, command) — from ui/common
+    FizmoTextBuffer m_textBuffer;
 
-    // Status line buffers
-    char m_statusRoom[64];
-    char m_statusScore[32];
-
-    // Command input buffer (managed in C++ to avoid QML concatenation issues)
-    char m_commandBuffer[256];
-    int m_commandLength;
+    // Shared poller state — from ui/common
+    FizmoPollerState m_pollerState;
 
     // Timer for polling fizmo output queue
     Qul::Timer m_pollTimer;
