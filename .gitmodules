@@ -1,3 +1,9 @@
 [submodule "external/libfizmo"]
 	path = external/libfizmo
 	url = https://github.com/chrender/libfizmo.git
+[submodule "external/lvgl"]
+	path = external/lvgl
+	url = https://github.com/lvgl/lvgl.git
+[submodule "external/sdl2"]
+	path = external/sdl2
+	url = https://github.com/libsdl-org/SDL.git
