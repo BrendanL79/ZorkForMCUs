@@ -45,6 +45,7 @@ add_executable(ZorkLVGL
     app/zork_status.c
     app/zork_compass.c
     app/zork_theme.c
+    assets/compass_rose_map.c
     adapter/fizmo_lvgl_adapter.c
 )
 
@@ -56,12 +57,6 @@ elseif(DISPLAY_PROFILE STREQUAL "RT1050")
 else()
     target_compile_definitions(ZorkLVGL PRIVATE DISPLAY_DESKTOP=1)
 endif()
-
-# --- Asset paths ---
-file(TO_CMAKE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/assets" ASSETS_DIR)
-target_compile_definitions(ZorkLVGL PRIVATE
-    COMPASS_ROSE_PATH="A:${ASSETS_DIR}/compass-rose.png"
-)
 
 # --- Include directories ---
 target_include_directories(ZorkLVGL PRIVATE
