@@ -9,15 +9,18 @@
 #include "src/themes/lv_theme_private.h"
 #include <string.h>
 
-/* Color palette */
-#define ZORK_COLOR_BG           lv_color_hex(0x000000)
-#define ZORK_COLOR_TEXT         lv_color_hex(0x00FF00)
-#define ZORK_COLOR_INPUT_BG    lv_color_hex(0x1A1A1A)
-#define ZORK_COLOR_STATUS_BG   lv_color_hex(0x1A1A1A)
-#define ZORK_COLOR_STATUS_TEXT lv_color_hex(0xFFFFFF)
-#define ZORK_COLOR_KB_BG       lv_color_hex(0x222222)
-#define ZORK_COLOR_KB_KEY_BG   lv_color_hex(0x333333)
-#define ZORK_COLOR_KB_KEY_TEXT lv_color_hex(0x00FF00)
+/* Color palette — matches the Qt/QUL Zork UI */
+#define ZORK_COLOR_BG           lv_color_hex(0x1a1a2e)  /* Dark blue-black */
+#define ZORK_COLOR_TEXT         lv_color_hex(0x00ff88)  /* Classic green terminal */
+#define ZORK_COLOR_INPUT_BG    lv_color_hex(0x0f3460)  /* Deep blue input area */
+#define ZORK_COLOR_INPUT_TEXT  lv_color_hex(0xffffff)  /* White typed text */
+#define ZORK_COLOR_STATUS_BG   lv_color_hex(0x16213e)  /* Dark navy status bar */
+#define ZORK_COLOR_STATUS_TEXT lv_color_hex(0xe8e8e8)  /* Light grey room name */
+#define ZORK_COLOR_STATUS_DIM  lv_color_hex(0xa0a0a0)  /* Dimmer score text */
+#define ZORK_COLOR_KB_BG       lv_color_hex(0x1a1a2e)  /* Match app background */
+#define ZORK_COLOR_KB_KEY_BG   lv_color_hex(0x263238)  /* Slate grey keys */
+#define ZORK_COLOR_KB_KEY_TEXT lv_color_hex(0xffffff)  /* White key labels */
+#define ZORK_COLOR_KB_SPECIAL  lv_color_hex(0x01579b)  /* Blue special keys */
 #define ZORK_COLOR_SCROLLBAR   lv_color_hex(0x004400)
 
 static lv_style_t style_screen;
@@ -87,8 +90,8 @@ static void styles_init(void)
 
     /* Keyboard checked/special keys */
     lv_style_init(&style_keyboard_items_checked);
-    lv_style_set_bg_color(&style_keyboard_items_checked, lv_color_hex(0x444444));
-    lv_style_set_text_color(&style_keyboard_items_checked, ZORK_COLOR_STATUS_TEXT);
+    lv_style_set_bg_color(&style_keyboard_items_checked, ZORK_COLOR_KB_SPECIAL);
+    lv_style_set_text_color(&style_keyboard_items_checked, ZORK_COLOR_KB_KEY_TEXT);
 
     /* Generic container: transparent bg, no border */
     lv_style_init(&style_container);

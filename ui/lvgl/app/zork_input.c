@@ -31,20 +31,27 @@ lv_obj_t *zork_input_create(lv_obj_t *parent)
     lv_obj_set_flex_align(cont, LV_FLEX_ALIGN_START,
                           LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     lv_obj_remove_flag(cont, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_bg_opa(cont, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_bg_opa(cont, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(cont, lv_color_hex(0x0f3460), 0);
     lv_obj_set_style_border_width(cont, 0, 0);
-    lv_obj_set_style_pad_all(cont, 2, 0);
+    lv_obj_set_style_pad_left(cont, 8, 0);
+    lv_obj_set_style_pad_right(cont, 8, 0);
+    lv_obj_set_style_pad_top(cont, 2, 0);
+    lv_obj_set_style_pad_bottom(cont, 2, 0);
     lv_obj_set_style_pad_gap(cont, 4, 0);
 
     lv_obj_t *prompt = lv_label_create(cont);
     lv_label_set_text(prompt, ">");
-    lv_obj_set_style_text_color(prompt, lv_color_hex(0x00FF00), 0);
+    lv_obj_set_style_text_color(prompt, lv_color_hex(0x00ff88), 0);
 
     s_input_ta = lv_textarea_create(cont);
     lv_textarea_set_one_line(s_input_ta, true);
     lv_textarea_set_text(s_input_ta, "");
     lv_obj_set_flex_grow(s_input_ta, 1);
     lv_obj_set_height(s_input_ta, LV_SIZE_CONTENT);
+    lv_obj_set_style_bg_opa(s_input_ta, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_text_color(s_input_ta, lv_color_hex(0xffffff), 0);
+    lv_obj_set_style_border_width(s_input_ta, 0, 0);
     lv_obj_add_event_cb(s_input_ta, input_ready_cb, LV_EVENT_READY, NULL);
 
     return cont;

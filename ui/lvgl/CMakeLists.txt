@@ -57,6 +57,12 @@ else()
     target_compile_definitions(ZorkLVGL PRIVATE DISPLAY_DESKTOP=1)
 endif()
 
+# --- Asset paths ---
+file(TO_CMAKE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/assets" ASSETS_DIR)
+target_compile_definitions(ZorkLVGL PRIVATE
+    COMPASS_ROSE_PATH="A:${ASSETS_DIR}/compass-rose.png"
+)
+
 # --- Include directories ---
 target_include_directories(ZorkLVGL PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}

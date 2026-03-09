@@ -94,6 +94,23 @@
 #define LV_SDL_INCLUDE_PATH <SDL.h>
 
 /*=======================
+ * FILE SYSTEM
+ *=======================*/
+
+/* stdio-based filesystem driver for loading assets (compass rose PNG) */
+#define LV_USE_FS_STDIO 1
+#define LV_FS_STDIO_LETTER 'A'
+#define LV_FS_STDIO_PATH ""
+#define LV_FS_STDIO_CACHE_SIZE 0
+
+/*=======================
+ * IMAGE DECODERS
+ *=======================*/
+
+/* Built-in PNG decoder (LodePNG) for compass rose image */
+#define LV_USE_LODEPNG 1
+
+/*=======================
  * WIDGETS
  *=======================*/
 

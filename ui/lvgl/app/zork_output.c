@@ -58,6 +58,12 @@ lv_obj_t *zork_output_create(lv_obj_t *parent)
     lv_textarea_set_max_length(output_ta, MAX_OUTPUT_CHARS + 1024);
     lv_textarea_set_text(output_ta, "");
 
+    /* Padding matches QUL: margin on all sides, extra right for compass overlay */
+    lv_obj_set_style_pad_left(output_ta, 6, 0);
+    lv_obj_set_style_pad_top(output_ta, 6, 0);
+    lv_obj_set_style_pad_bottom(output_ta, 6, 0);
+    lv_obj_set_style_pad_right(output_ta, 70, 0);
+
     return output_ta;
 }
 

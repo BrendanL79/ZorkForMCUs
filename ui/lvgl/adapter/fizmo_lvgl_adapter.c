@@ -123,8 +123,9 @@ static void on_command_submit(const char *cmd)
         /* In character mode, send just the first character */
         fizmo_submit_char((cmd && cmd[0]) ? (uint32_t)cmd[0] : (uint32_t)' ');
     } else {
+        /* Echo the command (fizmo already outputs the ">" prompt) */
         char echo_buf[512];
-        snprintf(echo_buf, sizeof(echo_buf), "> %s\n", cmd);
+        snprintf(echo_buf, sizeof(echo_buf), "%s\n", cmd);
         zork_output_append(echo_buf);
         fizmo_submit_line(cmd);
     }
