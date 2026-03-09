@@ -57,6 +57,7 @@ static void styles_init(void)
     lv_style_set_bg_opa(&style_textarea, LV_OPA_COVER);
     lv_style_set_bg_color(&style_textarea, ZORK_COLOR_BG);
     lv_style_set_text_color(&style_textarea, ZORK_COLOR_TEXT);
+    lv_style_set_text_font(&style_textarea, ZORK_FONT);
     lv_style_set_border_width(&style_textarea, 0);
     lv_style_set_radius(&style_textarea, 0);
     lv_style_set_pad_all(&style_textarea, 4);
@@ -72,6 +73,7 @@ static void styles_init(void)
     /* Label: green text */
     lv_style_init(&style_label);
     lv_style_set_text_color(&style_label, ZORK_COLOR_TEXT);
+    lv_style_set_text_font(&style_label, ZORK_FONT);
 
     /* Keyboard background: dark grey */
     lv_style_init(&style_keyboard);
@@ -86,6 +88,7 @@ static void styles_init(void)
     lv_style_set_bg_opa(&style_keyboard_items, LV_OPA_COVER);
     lv_style_set_bg_color(&style_keyboard_items, ZORK_COLOR_KB_KEY_BG);
     lv_style_set_text_color(&style_keyboard_items, ZORK_COLOR_KB_KEY_TEXT);
+    lv_style_set_text_font(&style_keyboard_items, ZORK_FONT);
     lv_style_set_border_width(&style_keyboard_items, 0);
     lv_style_set_radius(&style_keyboard_items, 4);
 
