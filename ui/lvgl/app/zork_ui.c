@@ -30,7 +30,7 @@
     #define COMPASS_SIZE        64
     #define COMPASS_MARGIN      4
     #define KEYBOARD_VISIBLE    0
-    #define KEYBOARD_HEIGHT     0
+    #define KEYBOARD_HEIGHT     165
 #elif defined(DISPLAY_RT1170_SCALED)
     #define STATUS_HEIGHT       36
     #define INPUT_HEIGHT        42
@@ -47,6 +47,20 @@ static lv_obj_t *s_keyboard;
 static void layout_portrait(lv_obj_t *scr);
 static void layout_landscape(lv_obj_t *scr);
 static void setup_input_group(void);
+
+#if !KEYBOARD_VISIBLE
+/* Toggle keyboard visibility when the input area is tapped */
+static void input_tap_cb(lv_event_t *e)
+{
+    (void)e;
+    if (s_keyboard == NULL) return;
+    if (lv_obj_has_flag(s_keyboard, LV_OBJ_FLAG_HIDDEN)) {
+        lv_obj_clear_flag(s_keyboard, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(s_keyboard, LV_OBJ_FLAG_HIDDEN);
+    }
+}
+#endif
 
 void zork_ui_init(void)
 {
@@ -168,10 +182,13 @@ static void layout_landscape(lv_obj_t *scr)
     lv_obj_t *input = zork_input_create(scr);
     lv_obj_set_size(input, lv_pct(100), INPUT_HEIGHT);
 
-    /* Keyboard hidden by default on RT1050 */
+    /* Keyboard hidden by default on RT1050; tap input area to toggle */
     s_keyboard = lv_keyboard_create(scr);
     lv_keyboard_set_textarea(s_keyboard, zork_input_get_textarea());
+    lv_obj_set_size(s_keyboard, lv_pct(100), KEYBOARD_HEIGHT);
     lv_obj_add_flag(s_keyboard, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_event_cb(zork_input_get_textarea(), input_tap_cb,
+                        LV_EVENT_FOCUSED, NULL);
 
     /* Compass rose: floating overlay on the output area */
     lv_obj_t *compass = zork_compass_create(scr);
