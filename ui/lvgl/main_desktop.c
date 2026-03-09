@@ -26,9 +26,11 @@
 #elif defined(DISPLAY_RT1050)
 #define HOR_RES 480
 #define VER_RES 272
+#elif defined(DISPLAY_RT1170_SCALED)
+#define HOR_RES 540
+#define VER_RES 960
 #else
-#define HOR_RES 800
-#define VER_RES 480
+#error "No display profile defined (DISPLAY_RT1170, DISPLAY_RT1050, or DISPLAY_RT1170_SCALED)"
 #endif
 
 #ifndef ZORK_STORY_PATH

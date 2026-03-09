@@ -5,9 +5,9 @@
  * Arranges all widgets according to the active display profile.
  *
  * Display profiles (compile-time):
- *   DISPLAY_RT1170  - 720x1280, portrait, keyboard always visible
- *   DISPLAY_RT1050  - 480x272, landscape, keyboard hidden
- *   DISPLAY_DESKTOP - 800x480 (default), portrait, keyboard hidden
+ *   DISPLAY_RT1170        - 720x1280, portrait, keyboard always visible
+ *   DISPLAY_RT1050        - 480x272, landscape, keyboard hidden
+ *   DISPLAY_RT1170_SCALED - 540x960, portrait, keyboard always visible
  */
 
 #include "zork_ui.h"
@@ -23,18 +23,23 @@
     #define COMPASS_SIZE        64
     #define COMPASS_MARGIN      8
     #define KEYBOARD_VISIBLE    1
+    #define KEYBOARD_HEIGHT     360
 #elif defined(DISPLAY_RT1050)
     #define STATUS_HEIGHT       24
     #define INPUT_HEIGHT        32
     #define COMPASS_SIZE        64
     #define COMPASS_MARGIN      4
     #define KEYBOARD_VISIBLE    0
-#else /* DISPLAY_DESKTOP */
-    #define STATUS_HEIGHT       32
-    #define INPUT_HEIGHT        40
+    #define KEYBOARD_HEIGHT     0
+#elif defined(DISPLAY_RT1170_SCALED)
+    #define STATUS_HEIGHT       36
+    #define INPUT_HEIGHT        42
     #define COMPASS_SIZE        64
     #define COMPASS_MARGIN      6
-    #define KEYBOARD_VISIBLE    0
+    #define KEYBOARD_VISIBLE    1
+    #define KEYBOARD_HEIGHT     270
+#else
+    #error "No display profile defined"
 #endif
 
 static lv_obj_t *s_keyboard;
@@ -86,7 +91,7 @@ static void setup_input_group(void)
 }
 
 /*
- * Portrait layout (RT1170 / Desktop):
+ * Portrait layout (RT1170 / RT1170_SCALED):
  *   status -> output (with compass overlay at bottom-right) -> input -> [keyboard]
  *
  * The compass rose is positioned as an overlay on the output area,
@@ -111,29 +116,33 @@ static void layout_portrait(lv_obj_t *scr)
     s_keyboard = lv_keyboard_create(scr);
     lv_keyboard_set_textarea(s_keyboard, zork_input_get_textarea());
 #if KEYBOARD_VISIBLE
-    lv_obj_set_width(s_keyboard, lv_pct(100));
+    lv_obj_set_size(s_keyboard, lv_pct(100), KEYBOARD_HEIGHT);
 #else
     lv_obj_add_flag(s_keyboard, LV_OBJ_FLAG_HIDDEN);
 #endif
 
-    /* Compass rose: floating overlay on the screen, positioned just above
-     * the input bar at the right edge. FLOATING excludes it from flex. */
+    /* Compass rose: floating overlay on the output area, at bottom-right.
+     * FLOATING excludes it from flex layout. Position is calculated from
+     * the output textarea's bottom edge so it stays above the input/keyboard. */
     lv_obj_t *compass = zork_compass_create(scr);
     lv_obj_add_flag(compass, LV_OBJ_FLAG_FLOATING);
     lv_obj_set_style_opa(compass, LV_OPA_70, 0);
 
-    /* Scale the image down to COMPASS_SIZE. lv_image uses its native size,
-     * so we compute a scale factor (256 = 1:1 in LVGL v9). */
+    /* Scale the image down to COMPASS_SIZE and fix widget size to match. */
     lv_obj_update_layout(scr);
     int32_t native_w = lv_obj_get_width(compass);
     if (native_w > 0 && native_w != COMPASS_SIZE) {
         uint32_t scale = (uint32_t)COMPASS_SIZE * 256 / (uint32_t)native_w;
         lv_image_set_scale(compass, scale);
     }
+    lv_obj_set_size(compass, COMPASS_SIZE, COMPASS_SIZE);
 
-    /* Position: right edge, just above the input bar */
-    lv_obj_align(compass, LV_ALIGN_BOTTOM_RIGHT,
-                 -COMPASS_MARGIN, -(INPUT_HEIGHT + COMPASS_MARGIN));
+    /* Position: bottom-right corner of the output area */
+    lv_obj_update_layout(scr);
+    int32_t output_bottom = lv_obj_get_y(output_ta) + lv_obj_get_height(output_ta);
+    lv_obj_set_pos(compass,
+                   lv_obj_get_width(scr) - COMPASS_SIZE - COMPASS_MARGIN,
+                   output_bottom - COMPASS_SIZE - COMPASS_MARGIN);
     lv_obj_move_foreground(compass);
 }
 
@@ -164,7 +173,7 @@ static void layout_landscape(lv_obj_t *scr)
     lv_keyboard_set_textarea(s_keyboard, zork_input_get_textarea());
     lv_obj_add_flag(s_keyboard, LV_OBJ_FLAG_HIDDEN);
 
-    /* Compass rose: floating overlay on the screen */
+    /* Compass rose: floating overlay on the output area */
     lv_obj_t *compass = zork_compass_create(scr);
     lv_obj_add_flag(compass, LV_OBJ_FLAG_FLOATING);
     lv_obj_set_style_opa(compass, LV_OPA_70, 0);
@@ -175,8 +184,12 @@ static void layout_landscape(lv_obj_t *scr)
         uint32_t scale = (uint32_t)COMPASS_SIZE * 256 / (uint32_t)native_w;
         lv_image_set_scale(compass, scale);
     }
+    lv_obj_set_size(compass, COMPASS_SIZE, COMPASS_SIZE);
 
-    lv_obj_align(compass, LV_ALIGN_BOTTOM_RIGHT,
-                 -COMPASS_MARGIN, -(INPUT_HEIGHT + COMPASS_MARGIN));
+    lv_obj_update_layout(scr);
+    int32_t output_bottom = lv_obj_get_y(output_ta) + lv_obj_get_height(output_ta);
+    lv_obj_set_pos(compass,
+                   lv_obj_get_width(scr) - COMPASS_SIZE - COMPASS_MARGIN,
+                   output_bottom - COMPASS_SIZE - COMPASS_MARGIN);
     lv_obj_move_foreground(compass);
 }

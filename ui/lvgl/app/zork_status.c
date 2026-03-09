@@ -5,14 +5,17 @@
  */
 
 #include "zork_status.h"
+#include "zork_fonts.h"
 #include "lvgl.h"
 
 #if defined(DISPLAY_RT1170)
     #define STATUS_MARGIN   8
 #elif defined(DISPLAY_RT1050)
     #define STATUS_MARGIN   4
-#else
+#elif defined(DISPLAY_RT1170_SCALED)
     #define STATUS_MARGIN   6
+#else
+    #error "No display profile defined"
 #endif
 
 static lv_style_t style_status_bar;
@@ -41,11 +44,11 @@ static void status_styles_init(void)
 
     lv_style_init(&style_status_text);
     lv_style_set_text_color(&style_status_text, lv_color_hex(0xe8e8e8));
-    lv_style_set_text_font(&style_status_text, LV_FONT_DEFAULT);
+    lv_style_set_text_font(&style_status_text, ZORK_FONT);
 
     lv_style_init(&style_score_text);
     lv_style_set_text_color(&style_score_text, lv_color_hex(0xa0a0a0));
-    lv_style_set_text_font(&style_score_text, LV_FONT_DEFAULT);
+    lv_style_set_text_font(&style_score_text, ZORK_FONT);
 
     styles_initialized = true;
 }

@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 # --- Options ---
 option(BUILD_DESKTOP "Build SDL2 desktop simulator" ON)
-set(DISPLAY_PROFILE "DESKTOP" CACHE STRING "Display profile: RT1050|RT1170|DESKTOP")
+set(DISPLAY_PROFILE "RT1170_SCALED" CACHE STRING "Display profile: RT1050|RT1170|RT1170_SCALED")
 
 # --- Project root (for shared sources) ---
 set(PROJECT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../..")
@@ -46,6 +46,9 @@ add_executable(ZorkLVGL
     app/zork_compass.c
     app/zork_theme.c
     assets/compass_rose_map.c
+    fonts/cascadia_mono_14.c
+    fonts/cascadia_mono_18.c
+    fonts/cascadia_mono_24.c
     adapter/fizmo_lvgl_adapter.c
 )
 
@@ -54,8 +57,10 @@ if(DISPLAY_PROFILE STREQUAL "RT1170")
     target_compile_definitions(ZorkLVGL PRIVATE DISPLAY_RT1170=1)
 elseif(DISPLAY_PROFILE STREQUAL "RT1050")
     target_compile_definitions(ZorkLVGL PRIVATE DISPLAY_RT1050=1)
+elseif(DISPLAY_PROFILE STREQUAL "RT1170_SCALED")
+    target_compile_definitions(ZorkLVGL PRIVATE DISPLAY_RT1170_SCALED=1)
 else()
-    target_compile_definitions(ZorkLVGL PRIVATE DISPLAY_DESKTOP=1)
+    message(FATAL_ERROR "Unknown DISPLAY_PROFILE: ${DISPLAY_PROFILE}. Use RT1050, RT1170, or RT1170_SCALED.")
 endif()
 
 # --- Include directories ---

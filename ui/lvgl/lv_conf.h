@@ -78,9 +78,9 @@
  * FONTS
  *=======================*/
 
+/* Built-in Montserrat 14 for LVGL internals (keyboard widget, etc.).
+ * App UI uses CascadiaMono fonts compiled as separate .c files. */
 #define LV_FONT_MONTSERRAT_14 1
-#define LV_FONT_MONTSERRAT_24 1
-
 #define LV_FONT_DEFAULT &lv_font_montserrat_14
 
 /*=======================

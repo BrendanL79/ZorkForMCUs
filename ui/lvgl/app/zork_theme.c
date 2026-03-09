@@ -5,6 +5,7 @@
  */
 
 #include "zork_theme.h"
+#include "zork_fonts.h"
 #include "lvgl.h"
 #include "src/themes/lv_theme_private.h"
 #include <string.h>
@@ -42,7 +43,7 @@ static void styles_init(void)
     lv_style_set_bg_opa(&style_screen, LV_OPA_COVER);
     lv_style_set_bg_color(&style_screen, ZORK_COLOR_BG);
     lv_style_set_text_color(&style_screen, ZORK_COLOR_TEXT);
-    lv_style_set_text_font(&style_screen, LV_FONT_DEFAULT);
+    lv_style_set_text_font(&style_screen, ZORK_FONT);
 
     /* Scrollbar: dark green, thin */
     lv_style_init(&style_scrollbar);
