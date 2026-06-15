@@ -186,17 +186,19 @@ Two details discovered while writing the implementation plan refine, but do not
 change the intent of, the decisions above:
 
 1. **Windows acquisition is an installer, not a tarball.** Slint 1.16.1 ships its
-   Windows x86_64 C++ package only as an NSIS installer
-   (`Slint-cpp-1.16.1-win64-MSVC-AMD64.exe`) — there is no Windows `.tar.gz`/`.zip`
-   of the C++ package. So the no-Rust path is: silent-install to a repo-local
-   directory, then `find_package(Slint)` via `CMAKE_PREFIX_PATH` (not the
-   `FetchContent(URL → extract)` mechanism sketched earlier, which only applies
-   to the Linux tarballs). Intent (prebuilt binary, no Rust) is preserved.
+   Windows C++ package only as an NSIS installer — there is no Windows
+   `.tar.gz`/`.zip` of the C++ package. This is an **ARM64** machine, so the
+   relevant package is `Slint-cpp-1.16.1-win64-MSVC-ARM64.exe`. The no-Rust path
+   is: silent-install to a repo-local directory, then `find_package(Slint)` via
+   `CMAKE_PREFIX_PATH` (not the `FetchContent(URL → extract)` mechanism sketched
+   earlier, which only applies to the Linux tarballs). Intent (prebuilt binary,
+   no Rust) is preserved.
 
-2. **Toolchain: MSVC native, with a MinGW fallback.** The Windows prebuilt is
-   MSVC-built, while libfizmo has only ever compiled under GCC (the existing QUL
-   and LVGL desktop sims use GCC-style toolchains). `ZorkSlint` therefore builds
-   under **MSVC** to match the prebuilt. libfizmo's POSIX stubs are gated on
+2. **Toolchain: MSVC native (ARM64), with a MinGW fallback.** The Windows
+   prebuilt is MSVC-built, while libfizmo has only ever compiled under GCC (the
+   existing QUL and LVGL desktop sims use GCC-style toolchains). `ZorkSlint`
+   therefore builds under **MSVC** (seeded via `vcvarsall.bat arm64`) to match the
+   prebuilt. libfizmo's POSIX stubs are gated on
    `__ARM_EABI__` and inactive on desktop, so MSVC will need a small desktop
    compatibility shim (missing `unistd.h`/`dirent.h`, `strcasecmp`,
    `getuid`/`getpwuid`, etc.). The plan opens with a de-risk task that compiles

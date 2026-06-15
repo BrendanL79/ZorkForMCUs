@@ -16,16 +16,30 @@
 
 ## Conventions for every task
 
-- **Build environment:** all `cmake`/`ninja`/`cl` commands must run from a shell where MSVC is on `PATH` — a "Developer PowerShell for VS 2022" (or after running `vcvars64.bat`). Verify once with `cl` (should print the MSVC version banner).
-- **Configure command** (from repo root, unless a task says otherwise):
+- **Target architecture: Windows ARM64 (native).** This is an ARM64 machine, so the
+  desktop sim is built natively for ARM64.
+- **Build environment:** MSVC must be seeded for **arm64** before any
+  `cmake`/`ninja`/`cl` command. The harness shell does not persist environment
+  between calls, so wrap each build/run command in a single `cmd.exe` invocation
+  that sources `vcvarsall.bat arm64` first. From the Git Bash tool, the canonical
+  wrapper is:
+  ```
+  MSYS_NO_PATHCONV=1 cmd.exe //c "\"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat\" arm64 && <command>"
+  ```
+  (Equivalently, run all commands from a "Developer PowerShell for VS 2022"
+  started with the **ARM64** Native Tools / `vcvarsall.bat arm64`.) Verify once
+  that `cl` prints its version banner under this seeding before building.
+- **Configure command** (wrap per above):
   ```
   cmake -S ui/slint -B ui/slint/build -G Ninja -DCMAKE_BUILD_TYPE=Debug
   ```
-- **Build command:**
+  With Ninja + the arm64-seeded environment, CMake auto-detects the ARM64
+  compiler — no `-A` flag needed.
+- **Build command** (wrap per above):
   ```
   cmake --build ui/slint/build
   ```
-- **Run** produces `ui/slint/build/<target>.exe`.
+- **Run** produces `ui/slint/build/<target>.exe` (a native ARM64 binary).
 - Commit after each task with the message shown in its final step.
 
 ---
@@ -372,11 +386,12 @@ git commit -m "Build libfizmo + bridge under MSVC; headless smoke test passes"
 
 - [ ] **Step 1: Download and silently install the Slint C++ MSVC package**
 
-From the repo root (the installer is NSIS: `/S` = silent, `/D=` = install dir,
-**must be the last argument, absolute, unquoted, backslashes**):
+From the repo root. Use the **ARM64** package (this is an ARM64 machine). The
+installer is NSIS: `/S` = silent, `/D=` = install dir, **must be the last
+argument, absolute, unquoted, backslashes**:
 ```
 curl -L -o slint-cpp-setup.exe \
-  https://github.com/slint-ui/slint/releases/download/v1.16.1/Slint-cpp-1.16.1-win64-MSVC-AMD64.exe
+  https://github.com/slint-ui/slint/releases/download/v1.16.1/Slint-cpp-1.16.1-win64-MSVC-ARM64.exe
 cmd //c "slint-cpp-setup.exe /S /D=C:\Users\brend\src\ZorkForMCUs\ui\slint\slint-install"
 ```
 Then verify the CMake package landed (path may be `lib/cmake/Slint` —
