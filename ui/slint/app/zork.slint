@@ -1,6 +1,28 @@
+import { ScrollView } from "std-widgets.slint";
+
 export component ZorkWindow inherits Window {
     title: "Zork — Slint";
     width: 540px;
     height: 960px;
     background: #06141f;
+
+    in property <string> transcript;
+
+    sv := ScrollView {
+        x: 8px;
+        y: 8px;
+        width: parent.width - 16px;
+        height: parent.height - 16px;
+        // Auto-pin to the bottom as content grows.
+        viewport-y: min(0px, sv.visible-height - sv.viewport-height);
+
+        Text {
+            width: sv.visible-width;
+            text: root.transcript;
+            color: #6fe0c0;
+            font-family: "Cascadia Mono";
+            font-size: 16px;
+            wrap: word-wrap;
+        }
+    }
 }

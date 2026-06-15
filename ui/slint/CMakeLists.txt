@@ -116,13 +116,25 @@ find_package(Slint REQUIRED)
 
 add_executable(ZorkSlint WIN32
     app/main.cpp
+    app/fizmo_slint_bridge.cpp
+    app/utf8.cpp
 )
 target_include_directories(ZorkSlint PRIVATE
     "${PROJECT_ROOT}/src"
     "${CMAKE_CURRENT_SOURCE_DIR}/app"
 )
+target_compile_definitions(ZorkSlint PRIVATE
+    ZORK_STORY_PATH="${PROJECT_ROOT}/zork1.z3"
+)
 target_link_libraries(ZorkSlint PRIVATE zorkfizmo Slint::Slint Threads::Threads)
 slint_target_sources(ZorkSlint app/zork.slint)
+
+# Copy the Slint runtime DLL next to the executable so it runs in place.
+add_custom_command(TARGET ZorkSlint POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/slint-install/lib/slint_cpp.dll"
+        "$<TARGET_FILE_DIR:ZorkSlint>"
+    VERBATIM)
 
 # WIN32 (GUI subsystem, no console) makes the linker look for WinMain, but we use
 # a plain main(). Point the entry at the CRT startup that calls main() instead.
