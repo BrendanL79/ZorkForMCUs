@@ -180,6 +180,31 @@ spike.
 - Slint font-bundling specifics for CascadiaMono.
 - Auto-scroll-to-bottom idiom in Slint's `ScrollView`.
 
+## Addendum — planning refinements (2026-06-15)
+
+Two details discovered while writing the implementation plan refine, but do not
+change the intent of, the decisions above:
+
+1. **Windows acquisition is an installer, not a tarball.** Slint 1.16.1 ships its
+   Windows x86_64 C++ package only as an NSIS installer
+   (`Slint-cpp-1.16.1-win64-MSVC-AMD64.exe`) — there is no Windows `.tar.gz`/`.zip`
+   of the C++ package. So the no-Rust path is: silent-install to a repo-local
+   directory, then `find_package(Slint)` via `CMAKE_PREFIX_PATH` (not the
+   `FetchContent(URL → extract)` mechanism sketched earlier, which only applies
+   to the Linux tarballs). Intent (prebuilt binary, no Rust) is preserved.
+
+2. **Toolchain: MSVC native, with a MinGW fallback.** The Windows prebuilt is
+   MSVC-built, while libfizmo has only ever compiled under GCC (the existing QUL
+   and LVGL desktop sims use GCC-style toolchains). `ZorkSlint` therefore builds
+   under **MSVC** to match the prebuilt. libfizmo's POSIX stubs are gated on
+   `__ARM_EABI__` and inactive on desktop, so MSVC will need a small desktop
+   compatibility shim (missing `unistd.h`/`dirent.h`, `strcasecmp`,
+   `getuid`/`getpwuid`, etc.). The plan opens with a de-risk task that compiles
+   libfizmo + the bridge under MSVC and runs a headless smoke test before any UI
+   work. **Bail criterion:** if MSVC compatibility is not converging within ~1–2
+   iterations, switch to MinGW + building Slint from source (accepts a Rust
+   toolchain, keeps GCC for libfizmo).
+
 ## Later phases (not part of this spike)
 
 - M2: status bar (room/score), compass rose image, on-screen touch keyboard.
