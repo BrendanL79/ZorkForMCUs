@@ -107,3 +107,23 @@ target_compile_definitions(zork_smoke PRIVATE
     _CRT_SECURE_NO_WARNINGS=1
 )
 target_link_libraries(zork_smoke PRIVATE zorkfizmo Threads::Threads)
+
+# ---------------------------------------------------------------------------
+# Slint C++ (prebuilt MSVC/ARM64 package) + the ZorkSlint application.
+# ---------------------------------------------------------------------------
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/slint-install")
+find_package(Slint REQUIRED)
+
+add_executable(ZorkSlint WIN32
+    app/main.cpp
+)
+target_include_directories(ZorkSlint PRIVATE
+    "${PROJECT_ROOT}/src"
+    "${CMAKE_CURRENT_SOURCE_DIR}/app"
+)
+target_link_libraries(ZorkSlint PRIVATE zorkfizmo Slint::Slint Threads::Threads)
+slint_target_sources(ZorkSlint app/zork.slint)
+
+# WIN32 (GUI subsystem, no console) makes the linker look for WinMain, but we use
+# a plain main(). Point the entry at the CRT startup that calls main() instead.
+target_link_options(ZorkSlint PRIVATE "/ENTRY:mainCRTStartup")
