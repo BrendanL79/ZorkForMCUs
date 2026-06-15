@@ -20,12 +20,10 @@ set(LIBFIZMO_SOURCES
     "${LIBFIZMO_DIR}/interpreter/output.c"
     "${LIBFIZMO_DIR}/interpreter/property.c"
     "${LIBFIZMO_DIR}/interpreter/routine.c"
-    "${LIBFIZMO_DIR}/interpreter/savegame.c"
     "${LIBFIZMO_DIR}/interpreter/sound.c"
     "${LIBFIZMO_DIR}/interpreter/stack.c"
     "${LIBFIZMO_DIR}/interpreter/streams.c"
     "${LIBFIZMO_DIR}/interpreter/table.c"
-    "${LIBFIZMO_DIR}/interpreter/text.c"
     "${LIBFIZMO_DIR}/interpreter/undo.c"
     "${LIBFIZMO_DIR}/interpreter/variable.c"
     "${LIBFIZMO_DIR}/interpreter/wordwrap.c"
@@ -44,7 +42,30 @@ set(LIBFIZMO_SOURCES
     "${PROJECT_ROOT}/src/msvc_shims/dirent_msvc.c"
 )
 
+# --- Patch libfizmo's two VLAs into fixed-size buffers WITHOUT touching the
+# --- pinned submodule: read each pristine file, string-replace only the VLA
+# --- line, write a patched copy into the build tree, compile the copy.
+set(_patched_dir "${CMAKE_BINARY_DIR}/patched")
+file(MAKE_DIRECTORY "${_patched_dir}")
+
+function(patch_vla src_abs out_var from to)
+    file(READ "${src_abs}" _content)
+    string(REPLACE "${from}" "${to}" _content "${_content}")
+    get_filename_component(_name "${src_abs}" NAME)
+    set(_dst "${_patched_dir}/${_name}")
+    file(WRITE "${_dst}" "${_content}")
+    set(${out_var} "${_dst}" PARENT_SCOPE)
+endfunction()
+
+patch_vla("${LIBFIZMO_DIR}/interpreter/savegame.c" SAVEGAME_PATCHED
+    "z_ucs filename[buffer_len + 1];"
+    "z_ucs filename[MAXIMUM_SAVEGAME_NAME_LENGTH + 1]; if (buffer_len > MAXIMUM_SAVEGAME_NAME_LENGTH) buffer_len = MAXIMUM_SAVEGAME_NAME_LENGTH;")
+patch_vla("${LIBFIZMO_DIR}/interpreter/text.c" TEXT_PATCHED
+    "uint8_t tokenize_buffer[tokenize_buffer_length];"
+    "uint8_t tokenize_buffer[6];")
+
 add_library(zorkfizmo STATIC ${LIBFIZMO_SOURCES})
+target_sources(zorkfizmo PRIVATE ${SAVEGAME_PATCHED} ${TEXT_PATCHED})
 
 target_include_directories(zorkfizmo BEFORE PRIVATE
     "${PROJECT_ROOT}/src/msvc_shims"
@@ -52,6 +73,10 @@ target_include_directories(zorkfizmo BEFORE PRIVATE
 )
 target_include_directories(zorkfizmo PRIVATE
     "${LIBFIZMO_DIR}"
+    # The patched VLA copies live in the build tree but use includes relative to
+    # their original location (interpreter/), e.g. "../tools/tracelog.h". Add the
+    # original interpreter dir so those relative paths resolve to the submodule.
+    "${LIBFIZMO_DIR}/interpreter"
 )
 
 target_compile_definitions(zorkfizmo PRIVATE
