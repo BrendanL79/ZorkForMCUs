@@ -127,3 +127,11 @@ slint_target_sources(ZorkSlint app/zork.slint)
 # WIN32 (GUI subsystem, no console) makes the linker look for WinMain, but we use
 # a plain main(). Point the entry at the CRT startup that calls main() instead.
 target_link_options(ZorkSlint PRIVATE "/ENTRY:mainCRTStartup")
+
+# ---------------------------------------------------------------------------
+# Unit test: UTF-32 -> UTF-8 encoder (pure, no fizmo/Slint dependency).
+# ---------------------------------------------------------------------------
+enable_testing()
+add_executable(test_utf8 test/test_utf8.cpp app/utf8.cpp)
+target_include_directories(test_utf8 PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/app")
+add_test(NAME test_utf8 COMMAND test_utf8)
