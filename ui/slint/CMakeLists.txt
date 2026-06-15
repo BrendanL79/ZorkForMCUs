@@ -104,14 +104,6 @@ target_compile_options(zorkfizmo PRIVATE
 find_package(Threads REQUIRED)
 target_link_libraries(zorkfizmo PRIVATE Threads::Threads)
 
-add_executable(zork_smoke app/smoke_main.c)
-target_include_directories(zork_smoke PRIVATE "${PROJECT_ROOT}/src")
-target_compile_definitions(zork_smoke PRIVATE
-    ZORK_STORY_PATH="${PROJECT_ROOT}/zork1.z3"
-    _CRT_SECURE_NO_WARNINGS=1
-)
-target_link_libraries(zork_smoke PRIVATE zorkfizmo Threads::Threads)
-
 # ---------------------------------------------------------------------------
 # Slint C++ (prebuilt MSVC/ARM64 package) + the ZorkSlint application.
 # ---------------------------------------------------------------------------
