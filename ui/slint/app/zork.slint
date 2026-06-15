@@ -1,4 +1,4 @@
-import { ScrollView } from "std-widgets.slint";
+import { ScrollView, LineEdit } from "std-widgets.slint";
 
 export component ZorkWindow inherits Window {
     title: "Zork — Slint";
@@ -7,22 +7,32 @@ export component ZorkWindow inherits Window {
     background: #06141f;
 
     in property <string> transcript;
+    callback submit(string);
 
-    sv := ScrollView {
-        x: 8px;
-        y: 8px;
-        width: parent.width - 16px;
-        height: parent.height - 16px;
-        // Auto-pin to the bottom as content grows.
-        viewport-y: min(0px, sv.visible-height - sv.viewport-height);
+    VerticalLayout {
+        padding: 8px;
+        spacing: 6px;
 
-        Text {
-            width: sv.visible-width;
-            text: root.transcript;
-            color: #6fe0c0;
-            font-family: "Cascadia Mono";
-            font-size: 16px;
-            wrap: word-wrap;
+        sv := ScrollView {
+            vertical-stretch: 1;
+            viewport-y: min(0px, sv.visible-height - sv.viewport-height);
+
+            Text {
+                width: sv.visible-width;
+                text: root.transcript;
+                color: #6fe0c0;
+                font-family: "Cascadia Mono";
+                font-size: 16px;
+                wrap: word-wrap;
+            }
+        }
+
+        input := LineEdit {
+            placeholder-text: "Type a command…";
+            accepted(text) => {
+                root.submit(self.text);
+                self.text = "";
+            }
         }
     }
 }

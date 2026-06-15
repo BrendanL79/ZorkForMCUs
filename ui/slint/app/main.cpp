@@ -26,6 +26,16 @@ int main() {
     auto ui = ZorkWindow::create();
     auto transcript = std::make_shared<std::string>();
 
+    // Echo the typed command into the transcript and send it to the interpreter.
+    ui->on_submit([ui, transcript](const slint::SharedString &cmd) {
+        std::string line(cmd);
+        *transcript += "\n>";
+        *transcript += line;
+        *transcript += "\n";
+        ui->set_transcript(slint::SharedString(*transcript));
+        fizmo_submit_line(line.c_str());
+    });
+
     // Poll the bridge on the UI thread and append new output to the transcript.
     slint::Timer poll_timer;
     poll_timer.start(slint::TimerMode::Repeated, std::chrono::milliseconds(30),
