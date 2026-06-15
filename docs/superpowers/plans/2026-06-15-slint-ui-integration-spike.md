@@ -20,15 +20,16 @@
   desktop sim is built natively for ARM64.
 - **Build environment:** MSVC must be seeded for **arm64** before any
   `cmake`/`ninja`/`cl` command. The harness shell does not persist environment
-  between calls, so wrap each build/run command in a single `cmd.exe` invocation
-  that sources `vcvarsall.bat arm64` first. From the Git Bash tool, the canonical
-  wrapper is:
+  between calls, so wrap each build/run command in a single invocation that
+  sources `vcvarsall.bat arm64` first. **Use the PowerShell tool** with
+  `cmd /c` (the Git Bash `MSYS_NO_PATHCONV=1 cmd.exe //c "..."` form launches cmd
+  interactively on this machine and silently fails to run the command). Canonical
+  form:
   ```
-  MSYS_NO_PATHCONV=1 cmd.exe //c "\"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat\" arm64 && <command>"
+  cmd /c '"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" arm64 >nul 2>&1 && <command>'
   ```
-  (Equivalently, run all commands from a "Developer PowerShell for VS 2022"
-  started with the **ARM64** Native Tools / `vcvarsall.bat arm64`.) Verify once
-  that `cl` prints its version banner under this seeding before building.
+  Confirmed working: this yields `cl 19.44 ... for ARM64`. Verify `cl` prints its
+  banner once before building.
 - **Configure command** (wrap per above):
   ```
   cmake -S ui/slint -B ui/slint/build -G Ninja -DCMAKE_BUILD_TYPE=Debug
@@ -65,6 +66,50 @@
 ## Task 1: De-risk — compile libfizmo + bridge under MSVC and run it headless
 
 **Goal of this task:** find out *immediately* whether libfizmo runs under MSVC. No Slint yet. If this does not converge in ~1–2 iterations of adding shims, **STOP and switch to the MinGW fallback** (see the bail note at the end of this task).
+
+> **HARD CONSTRAINT — `external/libfizmo` is immutable.** It is a pinned upstream
+> dependency. Do **not** edit, patch, or commit anything inside the submodule,
+> even behind compiler guards. All compatibility work lives in *our* module
+> (`src/` shims and `ui/slint/`).
+>
+> **The two known VLAs** (MSVC has no VLAs) are handled with build-time generated
+> copies — not submodule edits:
+> - `external/libfizmo/src/interpreter/savegame.c`:
+>   `z_ucs filename[buffer_len + 1];` (caller bounds `buffer_len` by
+>   `MAXIMUM_SAVEGAME_NAME_LENGTH`)
+> - `external/libfizmo/src/interpreter/text.c`:
+>   `uint8_t tokenize_buffer[tokenize_buffer_length];` (always ≤ 6)
+>
+> In `ui/slint/CMakeLists.txt`, at configure time, read each pristine file,
+> `string(REPLACE ...)` only the VLA line with a fixed-size buffer, `file(WRITE)`
+> the result to `${CMAKE_BINARY_DIR}/patched/<name>.c`, and compile the patched
+> copy in place of the original (drop the two originals from `LIBFIZMO_SOURCES`,
+> add the two generated copies). Pure CMake — no `patch`/`sed`/`git apply`. A
+> sketch:
+> ```cmake
+> set(_patched_dir "${CMAKE_BINARY_DIR}/patched")
+> file(MAKE_DIRECTORY "${_patched_dir}")
+>
+> function(patch_vla src_abs out_var from to)
+>     file(READ "${src_abs}" _content)
+>     string(REPLACE "${from}" "${to}" _content "${_content}")
+>     get_filename_component(_name "${src_abs}" NAME)
+>     set(_dst "${_patched_dir}/${_name}")
+>     file(WRITE "${_dst}" "${_content}")
+>     set(${out_var} "${_dst}" PARENT_SCOPE)
+> endfunction()
+>
+> patch_vla("${LIBFIZMO_DIR}/interpreter/savegame.c" SAVEGAME_PATCHED
+>     "z_ucs filename[buffer_len + 1];"
+>     "z_ucs filename[MAXIMUM_SAVEGAME_NAME_LENGTH + 1]; if (buffer_len > MAXIMUM_SAVEGAME_NAME_LENGTH) buffer_len = MAXIMUM_SAVEGAME_NAME_LENGTH;")
+> patch_vla("${LIBFIZMO_DIR}/interpreter/text.c" TEXT_PATCHED
+>     "uint8_t tokenize_buffer[tokenize_buffer_length];"
+>     "uint8_t tokenize_buffer[6];")
+> ```
+> Then list `${SAVEGAME_PATCHED}` and `${TEXT_PATCHED}` in the target instead of
+> the two originals. If a future libfizmo pin changes those exact lines, the
+> `string(REPLACE)` silently no-ops and the build fails on the VLA again — that is
+> the intended early-warning signal.
 
 **Files:**
 - Create: `ui/slint/CMakeLists.txt`
