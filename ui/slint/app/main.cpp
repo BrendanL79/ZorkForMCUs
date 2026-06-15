@@ -24,6 +24,19 @@ int main() {
     }
 
     auto ui = ZorkWindow::create();
+
+    // Register CascadiaCode so the "Cascadia Code" font-family resolves even on
+    // machines where the font is not system-installed.  SLINT_FONT_PATH is set by
+    // CMakeLists.txt; it points to the system font on the dev machine and can be
+    // overridden at configure time for other environments.  Failure is non-fatal —
+    // Slint will fall back to whatever monospace font the system has.
+#ifdef SLINT_FONT_PATH
+    if (auto err = ui->window().window_handle().register_font_from_path(
+                slint::SharedString(SLINT_FONT_PATH))) {
+        std::fprintf(stderr, "font load warning: %s\n", err->data());
+    }
+#endif
+
     auto transcript = std::make_shared<std::string>();
 
     // Echo the typed command into the transcript and send it to the interpreter.

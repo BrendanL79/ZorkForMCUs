@@ -130,6 +130,17 @@ target_include_directories(ZorkSlint PRIVATE
 target_compile_definitions(ZorkSlint PRIVATE
     ZORK_STORY_PATH="${PROJECT_ROOT}/zork1.z3"
 )
+
+# CascadiaCode font path — used by main.cpp to register the font with Slint so
+# that "Cascadia Code" resolves even without the font being pre-installed.
+# Default: system-installed location on Windows.  Override at configure time:
+#   cmake ... -DSLINT_FONT_PATH="C:/path/to/CascadiaCode.ttf"
+if(NOT DEFINED SLINT_FONT_PATH)
+    set(SLINT_FONT_PATH "C:/Windows/Fonts/CascadiaCode.ttf")
+endif()
+target_compile_definitions(ZorkSlint PRIVATE
+    SLINT_FONT_PATH="${SLINT_FONT_PATH}"
+)
 target_link_libraries(ZorkSlint PRIVATE zorkfizmo Slint::Slint Threads::Threads)
 slint_target_sources(ZorkSlint app/zork.slint)
 
