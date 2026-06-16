@@ -137,9 +137,17 @@ target_link_libraries(ZorkSlint PRIVATE zorkfizmo Slint::Slint Threads::Threads)
 slint_target_sources(ZorkSlint app/zork.slint)
 
 # Copy the Slint runtime DLL next to the executable so it runs in place.
+# Validate at configure time so a relocated/renamed DLL (e.g. after a Slint
+# version bump) fails clearly here rather than as a cryptic POST_BUILD error.
+set(_slint_runtime_dll "${CMAKE_CURRENT_SOURCE_DIR}/slint-install/lib/slint_cpp.dll")
+if(NOT EXISTS "${_slint_runtime_dll}")
+    message(FATAL_ERROR
+        "Slint runtime DLL not found at:\n  ${_slint_runtime_dll}\n"
+        "Is the Slint package installed under ui/slint/slint-install/? Did its layout change?")
+endif()
 add_custom_command(TARGET ZorkSlint POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_CURRENT_SOURCE_DIR}/slint-install/lib/slint_cpp.dll"
+        "${_slint_runtime_dll}"
         "$<TARGET_FILE_DIR:ZorkSlint>"
     VERBATIM)
 
