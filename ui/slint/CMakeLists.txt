@@ -66,7 +66,7 @@ patch_vla("${LIBFIZMO_DIR}/interpreter/savegame.c" SAVEGAME_PATCHED
     "z_ucs filename[MAXIMUM_SAVEGAME_NAME_LENGTH + 1]; if (buffer_len > MAXIMUM_SAVEGAME_NAME_LENGTH) buffer_len = MAXIMUM_SAVEGAME_NAME_LENGTH;")
 patch_vla("${LIBFIZMO_DIR}/interpreter/text.c" TEXT_PATCHED
     "uint8_t tokenize_buffer[tokenize_buffer_length];"
-    "uint8_t tokenize_buffer[6];")
+    "if (tokenize_buffer_length > 6) tokenize_buffer_length = 6; uint8_t tokenize_buffer[6];")
 
 add_library(zorkfizmo STATIC ${LIBFIZMO_SOURCES})
 target_sources(zorkfizmo PRIVATE ${SAVEGAME_PATCHED} ${TEXT_PATCHED})
