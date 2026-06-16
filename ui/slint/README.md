@@ -18,17 +18,21 @@ This is a native ARM64 build using Slint's prebuilt MSVC package (no Rust).
    `Slint-cpp-1.16.1-win64-MSVC-ARM64.exe /S /D=<abs path>\ui\slint\slint-install`
    (download from https://github.com/slint-ui/slint/releases/tag/v1.16.1)
 2. From a shell with MSVC seeded for arm64 (`vcvarsall.bat arm64`):
-   ```
+
+   ```powershell
    cmake -S ui/slint -B ui/slint/build -G Ninja -DCMAKE_BUILD_TYPE=Debug
    cmake --build ui/slint/build --target ZorkSlint
    ./ui/slint/build/ZorkSlint.exe
    ```
+
    The Slint runtime DLL is copied next to the exe automatically (POST_BUILD).
 
 ## Tests
+
 `ctest --test-dir ui/slint/build` runs the UTF-32→UTF-8 encoder unit test.
 
 ## Notes / known issues
+
 - **Font:** the transcript uses Cascadia Code referenced from the system
   (`SLINT_FONT_PATH`, default `C:/Windows/Fonts/CascadiaCode.ttf`); it is not
   bundled. Override at configure time with `-DSLINT_FONT_PATH=...` if needed.
