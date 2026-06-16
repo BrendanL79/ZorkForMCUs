@@ -3,6 +3,7 @@
 #include "fizmo_bridge.h"
 
 #include <chrono>
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
@@ -39,24 +40,39 @@ int main() {
 
     auto transcript = std::make_shared<std::string>();
 
-    // Echo the typed command into the transcript and send it to the interpreter.
-    ui->on_submit([ui, transcript](const slint::SharedString &cmd) {
-        std::string line(cmd);
-        *transcript += "\n>";
-        *transcript += line;
-        *transcript += "\n";
+    // Cap the transcript so long sessions don't grow memory and per-update cost
+    // without bound (the LVGL stack trims scrollback similarly). Append a chunk,
+    // drop the oldest bytes past the cap — advancing to the next UTF-8 lead byte so
+    // we never hand slint::SharedString an invalid (mid-character) string — then
+    // publish. This is the single place that mutates and publishes the transcript.
+    const std::size_t max_transcript_bytes = 256 * 1024;
+    auto append_and_publish = [ui, transcript, max_transcript_bytes](const std::string &chunk) {
+        *transcript += chunk;
+        if (transcript->size() > max_transcript_bytes) {
+            std::size_t cut = transcript->size() - max_transcript_bytes;
+            while (cut < transcript->size() &&
+                   (static_cast<unsigned char>((*transcript)[cut]) & 0xC0) == 0x80) {
+                ++cut;
+            }
+            transcript->erase(0, cut);
+        }
         ui->set_transcript(slint::SharedString(*transcript));
+    };
+
+    // Echo the typed command into the transcript and send it to the interpreter.
+    ui->on_submit([append_and_publish](const slint::SharedString &cmd) {
+        std::string line(cmd);
+        append_and_publish("\n>" + line + "\n");
         fizmo_submit_line(line.c_str());
     });
 
     // Poll the bridge on the UI thread and append new output to the transcript.
     slint::Timer poll_timer;
     poll_timer.start(slint::TimerMode::Repeated, std::chrono::milliseconds(30),
-        [ui, transcript]() {
+        [append_and_publish]() {
             std::string chunk = zork_drain_output();
             if (!chunk.empty()) {
-                *transcript += chunk;
-                ui->set_transcript(slint::SharedString(*transcript));
+                append_and_publish(chunk);
             }
         });
 
