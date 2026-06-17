@@ -1,0 +1,74 @@
+import { ScrollView, LineEdit } from "std-widgets.slint";
+
+export component ZorkWindow inherits Window {
+    title: "Zork — Slint";
+
+    in property <length> win-width: 540px;
+    in property <length> win-height: 960px;
+    width: root.win-width;
+    height: root.win-height;
+    background: #06141f;
+
+    in property <string> transcript;
+    callback submit(string);
+
+    // Whether the transcript is pinned to the newest line. Released when the user
+    // scrolls up; re-engaged when they scroll back to the bottom.
+    property <bool> stick-to-bottom: true;
+
+    VerticalLayout {
+        width: 100%;
+        height: 100%;
+        padding: 8px;
+        spacing: 6px;
+
+        sv := ScrollView {
+            vertical-stretch: 1;
+
+            // The viewport must be as tall as the wrapped text for scrolling to
+            // engage; a bare Text child otherwise leaves viewport-height stuck
+            // equal to visible-height (confirmed via the title diagnostics), so
+            // there is nothing to scroll. Drive it from the text's content height.
+            viewport-width: sv.visible-width;
+            viewport-height: txt.preferred-height;
+
+            // A user scroll away from the bottom releases the auto-pin; scrolling
+            // back to the bottom re-engages it. (Programmatic viewport-y changes
+            // from the Timer below do not trigger this callback.)
+            scrolled() => {
+                root.stick-to-bottom =
+                    sv.viewport-y <= min(0px, sv.visible-height - sv.viewport-height) + 2px;
+            }
+
+            txt := Text {
+                width: sv.visible-width;
+                text: root.transcript;
+                color: #6fe0c0;
+                font-family: "Cascadia Code";
+                font-size: 16px;
+                wrap: word-wrap;
+            }
+        }
+
+        input := LineEdit {
+            placeholder-text: "Type a command…";
+            accepted(text) => {
+                root.submit(self.text);
+                self.text = "";
+            }
+        }
+    }
+
+    // Keep the newest line visible. Polled (not a hard binding) so manual
+    // scrollback still works, and it reads viewport-height after layout has
+    // settled, so it pins to the true bottom instead of one line short.
+    Timer {
+        interval: 80ms;
+        running: true;
+        triggered() => {
+            if (root.stick-to-bottom) {
+                sv.viewport-y = min(0px, sv.visible-height - sv.viewport-height);
+            }
+        }
+    }
+}

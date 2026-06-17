@@ -20,6 +20,10 @@ extern "C" {
 #include "tools/filesys_c.h"
 #include "tools/types.h"
 #include "filesys_interface/filesys_interface.h"
+
+// Defined with C linkage in libfizmo's savegame.c. Declared here at file scope
+// (MSVC rejects block-scope linkage specifications, which GCC accepts).
+extern z_ucs last_savegame_filename[];
 }
 
 // Configuration
@@ -126,7 +130,7 @@ static void screen_link_interface_to_story(struct z_story *story) {
 
     // Set default savegame filename to "zork1.sav"
     // This is used as the pre-filled default when user types SAVE/RESTORE
-    extern z_ucs last_savegame_filename[];
+    // (last_savegame_filename is declared at file scope above.)
     const char *default_name = "zork1.sav";
     for (size_t i = 0; default_name[i] != '\0'; i++) {
         last_savegame_filename[i] = static_cast<z_ucs>(default_name[i]);
