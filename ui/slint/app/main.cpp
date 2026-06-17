@@ -26,6 +26,10 @@ int main() {
 
     auto ui = ZorkWindow::create();
 
+    // Window dimensions come from the display profile (DISPLAY_PROFILE in CMake).
+    ui->set_win_width(ZORK_WIN_W);
+    ui->set_win_height(ZORK_WIN_H);
+
     // Register CascadiaCode so the "Cascadia Code" font-family resolves even on
     // machines where the font is not system-installed.  SLINT_FONT_PATH is set by
     // CMakeLists.txt; it points to the system font on the dev machine and can be

@@ -123,6 +123,27 @@ target_compile_definitions(ZorkSlint PRIVATE
     ZORK_STORY_PATH="${PROJECT_ROOT}/zork1.z3"
 )
 
+# --- Display profile -> window dimensions (mirrors ui/qul and ui/lvgl) ---
+set(DISPLAY_PROFILE "RT1170_SCALED" CACHE STRING "Display profile: RT1050|RT1170|RT1170_SCALED")
+set_property(CACHE DISPLAY_PROFILE PROPERTY STRINGS "RT1050" "RT1170" "RT1170_SCALED")
+if(DISPLAY_PROFILE STREQUAL "RT1050")
+    set(_zork_win_w 480)
+    set(_zork_win_h 272)
+elseif(DISPLAY_PROFILE STREQUAL "RT1170")
+    set(_zork_win_w 720)
+    set(_zork_win_h 1280)
+elseif(DISPLAY_PROFILE STREQUAL "RT1170_SCALED")
+    set(_zork_win_w 540)
+    set(_zork_win_h 960)
+else()
+    message(FATAL_ERROR "Unknown DISPLAY_PROFILE: ${DISPLAY_PROFILE}. Use RT1050, RT1170, or RT1170_SCALED.")
+endif()
+message(STATUS "ZorkSlint display profile: ${DISPLAY_PROFILE} (${_zork_win_w}x${_zork_win_h})")
+target_compile_definitions(ZorkSlint PRIVATE
+    ZORK_WIN_W=${_zork_win_w}
+    ZORK_WIN_H=${_zork_win_h}
+)
+
 # CascadiaCode font path — used by main.cpp to register the font with Slint so
 # that "Cascadia Code" resolves even without the font being pre-installed.
 # Default: system-installed location on Windows.  Override at configure time:
