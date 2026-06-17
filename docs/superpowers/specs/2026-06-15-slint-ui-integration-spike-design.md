@@ -50,7 +50,7 @@ in, round-trip, in a Slint window, with **no Rust toolchain installed**.
 - Scrolling text output (accumulated game transcript)
 - Single-line text input submitted on Enter
 - Window fixed at the default display profile (RT1170_SCALED, 540×960)
-- CascadiaMono font for parity with the other stacks
+- Cascadia Code font for parity with the other stacks
 - Existing dark-blue / teal color scheme
 
 ### Explicitly out of scope (deferred to later phases)
@@ -71,7 +71,7 @@ ui/slint/
   app/zork.slint                  # the UI markup
   app/main.cpp                    # entry point + Slint event loop + bridge wiring
   app/fizmo_slint_bridge.h/.cpp   # drains bridge output, UTF-32 z_ucs -> UTF-8
-  fonts/CascadiaMono.ttf          # (or reuse the TTF already in the repo)
+  fonts/CascadiaCode.ttf          # (or reuse the TTF already in the repo)
 ```
 
 Target name: **`ZorkSlint`**. The `app/` (glue) plus markup split mirrors
@@ -145,7 +145,7 @@ the timer — no additional threading or locking introduced by this stack.
 
 ## Fonts
 
-Bundle **CascadiaMono.ttf** via Slint's font embedding and reference it by
+Bundle **CascadiaCode.ttf** via Slint's font embedding and reference it by
 `font-family` in `zork.slint`. The exact bundling mechanism is confirmed during
 implementation; if it proves fiddly for the spike, fall back to a monospace
 system family (parity polish is a later phase). This sidesteps the
@@ -177,7 +177,7 @@ spike.
 ## Risks / unknowns (resolved during implementation)
 
 - Exact prebuilt-tarball URL and Slint version to pin.
-- Slint font-bundling specifics for CascadiaMono.
+- Slint font-bundling specifics for Cascadia Code.
 - Auto-scroll-to-bottom idiom in Slint's `ScrollView`.
 
 ## Addendum — planning refinements (2026-06-15)
@@ -211,5 +211,21 @@ change the intent of, the decisions above:
 
 - M2: status bar (room/score), compass rose image, on-screen touch keyboard.
 - Three display profiles (RT1050 / RT1170 / RT1170_SCALED) via CMake switch.
+  **Implemented post-spike — see the update below.**
 - Convert Slint dependency to a submodule + from-source build.
 - Hardware / FreeRTOS port using Slint's MCU software renderer.
+
+## Addendum — post-spike work (2026-06-17)
+
+The "Explicitly out of scope" list above describes the integration spike as
+designed. Beyond it, the following shipped on the `slint-display-profiles`
+branch (PR #2) and are therefore no longer pending:
+
+- **Display profiles:** the three-profile `DISPLAY_PROFILE` CMake switch (RT1050
+  480×272 / RT1170 720×1280 / RT1170_SCALED 540×960 default), driving the window
+  size via `ZORK_WIN_W`/`ZORK_WIN_H` compile defs and `ZorkWindow`
+  `win-width`/`win-height` properties.
+- **Transcript scroll fix:** the RT1050 window exposed that a bare `Text` child
+  leaves a `ScrollView`'s `viewport-height` stuck at `visible-height` (nothing
+  scrolls). Fixed by sizing `viewport-height` to the text's content height plus a
+  polled stick-to-bottom auto-scroll (`Timer` + `scrolled()`).

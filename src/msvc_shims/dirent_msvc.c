@@ -35,7 +35,7 @@ DIR *opendir(const char *name) {
 
     /* Build "<name>\*" search pattern. */
     len = strlen(name);
-    if (len + 3 >= sizeof(d->pattern)) {
+    if (len + 3 > sizeof(d->pattern)) {
         free(d);
         return NULL;
     }

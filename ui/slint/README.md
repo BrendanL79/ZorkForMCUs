@@ -6,9 +6,10 @@ developed desktop-first.
 
 ## Status
 Integration spike — the text round-trip is playable: the game's output renders in
-a scrolling transcript and typed commands are sent to the interpreter. Not yet
-implemented (future phases): status bar, compass rose, on-screen keyboard, the
-three display-profile switch, and the hardware/FreeRTOS port. See
+a scrolling transcript and typed commands are sent to the interpreter. The three
+display profiles (RT1050/RT1170/RT1170_SCALED) are also wired up. Not yet
+implemented (future phases): status bar, compass rose, on-screen keyboard, and
+the hardware/FreeRTOS port. See
 `docs/superpowers/specs/2026-06-15-slint-ui-integration-spike-design.md`.
 
 ## Build (Windows, MSVC / ARM64)
@@ -26,6 +27,9 @@ This is a native ARM64 build using Slint's prebuilt MSVC package (no Rust).
    ```
 
    The Slint runtime DLL is copied next to the exe automatically (POST_BUILD).
+
+   Select a display profile with `-DDISPLAY_PROFILE=RT1050|RT1170|RT1170_SCALED`
+   (default `RT1170_SCALED`, 540×960; RT1050 is 480×272, RT1170 is 720×1280).
 
 ## Tests
 

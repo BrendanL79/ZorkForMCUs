@@ -28,20 +28,22 @@ int mkdir(const char *path, int mode);
 
 /*
  * MSVC desktop build: this stub shadows the real <sys/stat.h> because src/ is
- * on the include path ahead of the UCRT. MSVC has no #include_next, so map the
- * POSIX names libfizmo uses onto the UCRT's _-prefixed equivalents. <sys/stat.h>
- * here would re-enter this stub, so pull the real struct stat / _stat / _fstat
- * declarations in via the lower-level CRT headers that do not route through it.
+ * on the include path ahead of the UCRT, and MSVC has no #include_next to fall
+ * through to the real header. So map the POSIX names libfizmo uses onto the
+ * UCRT's 64-bit equivalents (_stat64 / _fstat64) and declare the UCRT _stat64
+ * layout *exactly*. A hand-rolled struct is ABI-unsafe: the UCRT's st_size is
+ * 64-bit, so declaring it as `long` (32-bit) shifts st_mtime/st_ctime and the
+ * CRT writes past/into the wrong fields.
  */
-#include <io.h>          /* _fstat, _open, _close, _fileno */
+#include <io.h>          /* _open, _close, _fileno */
 #include <fcntl.h>       /* _O_RDONLY */
 #include <direct.h>      /* _mkdir */
-#include <corecrt_io.h>
 
-/* The UCRT declares struct _stat / _fstat in <sys/stat.h>, which we shadow.
- * Re-declare the minimal surface libfizmo needs, matching the UCRT layout. */
-#ifndef _STAT_DEFINED
-struct stat {
+/* Matches the UCRT <sys/stat.h> definition of struct _stat64 (which we shadow).
+ * Guarded so it never collides if a real declaration is ever pulled in. */
+#ifndef _STAT64_SHIM_DEFINED
+#define _STAT64_SHIM_DEFINED
+struct _stat64 {
     unsigned int   st_dev;
     unsigned short st_ino;
     unsigned short st_mode;
@@ -49,14 +51,19 @@ struct stat {
     short          st_uid;
     short          st_gid;
     unsigned int   st_rdev;
-    long           st_size;
-    long long      st_atime;
-    long long      st_mtime;
-    long long      st_ctime;
+    __int64        st_size;
+    __int64        st_atime;
+    __int64        st_mtime;
+    __int64        st_ctime;
 };
-int fstat(int fd, struct stat *buf);
-int stat(const char *path, struct stat *buf);
+int __cdecl _stat64(const char *_Path, struct _stat64 *_Stat);
+int __cdecl _fstat64(int _FileHandle, struct _stat64 *_Stat);
 #endif
+
+/* libfizmo's filesys_c.c uses the POSIX names; route them to the 64-bit CRT
+ * entry points so the struct above matches what the CRT actually writes. */
+#define stat  _stat64
+#define fstat _fstat64
 
 #ifndef S_IFMT
 #define S_IFMT  0xF000
